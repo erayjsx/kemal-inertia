@@ -1,0 +1,8 @@
+name: svelte-app
+version: 0.1.0
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+  kemal-inertia:
+    path: ../../
