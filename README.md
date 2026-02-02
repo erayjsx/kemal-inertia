@@ -1,4 +1,4 @@
-# [Kemal](https://kemalcr.com) + [Inertia](https://inertiajs.com)
+# <a href="https://kemalcr.com" target="_blank">Kemal</a> + <a href="https://inertiajs.com" target="_blank">Inertia</a>
 
 Inertia.js adapter for Kemal written in Crystal.
 
