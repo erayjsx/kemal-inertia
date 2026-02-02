@@ -1,95 +1,138 @@
-# kemal-inertia
+# Kemal + Inertia
 
 Inertia.js adapter for Kemal written in Crystal.
 
-This shard allows you to use Inertia.js with Kemal, enabling modern
-SPA-like applications using Vue, React, or Svelte without building an API.
-
----
+This shard allows you to use Inertia.js with Kemal, enabling modern SPA-like applications using Vue, React, or Svelte without building a separate API.
 
 ## Installation
 
-Add this shard to your `shard.yml`:
+1. Add the dependency to your `shard.yml`:
 
-```yaml
-dependencies:
-  kemal-inertia:
-    github: YOUR_GITHUB_USERNAME/kemal-inertia
-Then install:
-shards install
-Basic Setup
+   ```yaml
+   dependencies:
+     kemal:
+       github: kemalcr/kemal
+     kemal-inertia:
+       github: erayayd/kemal-inertia
+   ```
+
+2. Run `shards install`
+
+## Basic Setup
+
+```crystal
 require "kemal"
 require "kemal-inertia"
 
-Kemal::Inertia.version = "1"
-Kemal.config.add_handler Kemal::Inertia::Middleware.new
-Rendering Pages
-Simple render
-get "/users" do |env|
-  Inertia.render env, "Users/Index",
-    users: User.all,
-    count: User.count
+# 1. Configure Inertia
+Kemal::Inertia.configure do |config|
+  config.version = "1.0"
+  
+  # Optional: Custom HTML handler for the first page load
+  # This is useful for injecting Vite scripts/styles or custom layouts
+  config.html_handler = ->(env : HTTP::Server::Context, page : String) {
+    render "src/views/layout.ecr" 
+  }
 end
-Using a block
+
+# 2. Add the middleware
+add_handler Kemal::Inertia::Middleware.new
+
+# 3. Render your pages
+get "/" do |env|
+  # Render 'Home' component with props
+  Kemal::Inertia.render(env, "Home", 
+    name: "Kemal",
+    version: "1.0"
+  )
+end
+
+Kemal.run
+```
+
+## Rendering
+
+### Simple Render
+
+Pass props as named arguments:
+
+```crystal
+get "/users" do |env|
+  users = [
+    {"id" => 1, "name" => "Alice"},
+    {"id" => 2, "name" => "Bob"}
+  ]
+  
+  Kemal::Inertia.render(env, "Users/Index", 
+    users: users,
+    count: users.size
+  )
+end
+```
+
+### Using a Block
+
+Useful for complex data structures:
+
+```crystal
 get "/dashboard" do |env|
-  Inertia.render env, "Dashboard" do
+  Kemal::Inertia.render(env, "Dashboard") do
     {
-      stats: {
-        users: 120,
-        sales: 42
-      }
+      "stats" => {
+        "users" => 120,
+        "sales" => 42
+      },
+      "last_updated" => Time.local.to_s
     }
   end
 end
-Shared Props
-Shared props are automatically included in every response.
+```
+
+## Shared Data
+
+Shared props are automatically included in every response. Great for user sessions, flash messages, etc.
+
+```crystal
 Kemal::Inertia.share("auth") do |env|
   if id = env.session.int?("user_id")
-    { id: id }
+    { "user" => { "id" => id, "name" => "Current User" } }
   else
     nil
   end
 end
+```
 
-Kemal::Inertia.share("flash") do |env|
-  {
-    success: env.session.string?("flash_success"),
-    error: env.session.string?("flash_error")
-  }
+## Partial Reloads
+
+This adapter supports Inertia's Partial Reloads feature. If a request includes `X-Inertia-Partial-Data` headers, only the requested keys will be returned.
+
+```crystal
+# Frontend request: 
+# get(url, { only: ['users'], preserveState: true })
+
+get "/users" do |env|
+  # If 'users' is not requested during a partial reload, 
+  # this expensive calculation might be skipped (depending on implementation optimization)
+  
+  Kemal::Inertia.render(env, "Users/Index",
+    users: User.all, # Heavy query
+    filters: params  # Light data
+  )
 end
-Frontend usage:
-props.auth
-props.flash.success
-Redirects
-Use Inertia.redirect instead of env.redirect:
-post "/login" do |env|
-  Inertia.redirect env, "/dashboard"
-end
-Redirects use HTTP 303 and are fully Inertia-compatible.
-Validation Errors (422)
-post "/login" do |env|
-  errors = {} of String => Array(String)
+```
 
-  errors["email"] = ["Email is required"]
-  errors["password"] = ["Password too short"]
+## Examples
 
-  unless errors.empty?
-    Inertia.validation_error env, errors
-    next
-  end
+Check the `examples/` folder for full working examples with different frontend frameworks:
 
-  Inertia.redirect env, "/dashboard"
-end
-Frontend:
-props.errors.email[0]
-Versioning
-Inertia uses asset versioning to force full reloads when assets change.
-Kemal::Inertia.version = "1"
-If the frontend version differs, a 409 Conflict response is returned
-with X-Inertia-Location.
-Roadmap
- Partial reloads (only, except)
- Lazy props
- File uploads
- Improved type serializers
- Documentation site
+- **[React](examples/react-app)** (Vite + React)
+- **[Vue](examples/vue-app)** (Vite + Vue 3)
+- **[Svelte](examples/svelte-app)** (Vite + Svelte)
+
+## Contributing
+
+1. Fork it (<https://github.com/erayayd/kemal-inertia/fork>)
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create a new Pull Request
