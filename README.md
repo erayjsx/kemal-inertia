@@ -1,4 +1,4 @@
-# <a href="https://kemalcr.com"><img src="images/kemal.png" alt="Kemal" height="50" /></a> + <a href="https://inertiajs.com"><img src="images/inertia.png" alt="Inertia" height="50" /></a>
+# <a href="https://kemalcr.com"><img src="images/kemal.png" alt="Kemal" height="72" style="vertical-align: middle;" /></a> + <a href="https://inertiajs.com"><img src="images/inertia.png" alt="Inertia" height="72" style="vertical-align: middle; border-radius: 50%;" /></a>
 
 Inertia.js adapter for Kemal written in Crystal.
 
