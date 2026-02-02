@@ -1,0 +1,12 @@
+# Dependencies
+/node_modules
+/lib
+/.shards
+
+# Build artifacts
+/public/dist
+/app
+*.dwarf
+
+# System files
+.DS_Store

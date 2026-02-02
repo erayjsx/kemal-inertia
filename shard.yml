@@ -1,0 +1,13 @@
+name: kemal-inertia
+version: 0.0.1
+
+authors:
+  - erayjs
+
+crystal: '>= 1.19.1'
+
+license: MIT
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
