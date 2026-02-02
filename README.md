@@ -13,7 +13,7 @@ This shard allows you to use Inertia.js with Kemal, enabling modern SPA-like app
      kemal:
        github: kemalcr/kemal
      kemal-inertia:
-       github: erayayd/kemal-inertia
+       github: erayjsx/kemal-inertia
    ```
 
 2. Run `shards install`
@@ -131,7 +131,7 @@ Check the `examples/` folder for full working examples with different frontend f
 
 ## Contributing
 
-1. Fork it (<https://github.com/erayayd/kemal-inertia/fork>)
+1. Fork it (<https://github.com/erayjsx/kemal-inertia/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
