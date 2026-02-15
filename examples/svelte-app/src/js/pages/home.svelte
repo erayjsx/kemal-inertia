@@ -1,6 +1,6 @@
 <script>
-  export let name;
-  let count = 0;
+  let { name } = $props();
+  let count = $state(0);
 </script>
 
 <div
@@ -28,7 +28,7 @@
     <p class="counter-text">
       Counter: <span class="count-value">{count}</span>
     </p>
-    <button on:click={() => (count += 1)} class="btn-primary">
+    <button onclick={() => (count += 1)} class="btn-primary">
       Increment
     </button>
   </div>

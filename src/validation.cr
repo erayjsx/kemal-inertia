@@ -1,4 +1,5 @@
 require "json"
+require "./headers"
 
 module Kemal::Inertia
   def self.validation_error(
@@ -13,7 +14,7 @@ module Kemal::Inertia
     end
 
     props = {
-      "errors" => JSON::Any.new(error_props)
+      "errors" => JSON::Any.new(error_props),
     }
 
     inertia_response = Response.new(
@@ -25,7 +26,7 @@ module Kemal::Inertia
 
     env.response.status_code = 422
     env.response.content_type = "application/json"
-    env.response.headers["X-Inertia"] = "true"
+    env.response.headers[Headers::INERTIA] = "true"
     env.response.print(inertia_response.to_json)
   end
 end

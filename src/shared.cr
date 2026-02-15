@@ -16,4 +16,8 @@ module Kemal::Inertia
     end
     props
   end
+
+  def self.clear_shared_props
+    @@shared_props.clear
+  end
 end

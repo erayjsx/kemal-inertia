@@ -1,4 +1,5 @@
 require "kemal"
+require "./headers"
 
 module Kemal::Inertia
   def self.redirect(
@@ -8,9 +9,9 @@ module Kemal::Inertia
     env.response.status_code = 303
     env.response.headers["Location"] = location
 
-    # Inertia request ise header ekle
-    if env.request.headers.has_key?("X-Inertia")
-      env.response.headers["X-Inertia"] = "true"
+    # Add header if Inertia request
+    if env.request.headers.has_key?(Headers::INERTIA)
+      env.response.headers[Headers::INERTIA] = "true"
     end
   end
 end
