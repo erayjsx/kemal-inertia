@@ -1,6 +1,6 @@
 # <a href="https://kemalcr.com" target="_blank">Kemal</a> + <a href="https://inertiajs.com" target="_blank">Inertia</a>
 
-Inertia.js adapter for Kemal written in Crystal.
+Inertia.js v2 adapter for Kemal written in Crystal.
 
 This shard allows you to use Inertia.js with Kemal, enabling modern SPA-like applications using Vue, React, or Svelte without building a separate API.
 
@@ -24,27 +24,17 @@ This shard allows you to use Inertia.js with Kemal, enabling modern SPA-like app
 require "kemal"
 require "kemal-inertia"
 
-# 1. Configure Inertia
 Kemal::Inertia.configure do |config|
   config.version = "1.0"
-  
-  # Optional: Custom HTML handler for the first page load
-  # This is useful for injecting Vite scripts/styles or custom layouts
   config.html_handler = ->(env : HTTP::Server::Context, page : String) {
-    render "src/views/layout.ecr" 
+    render "src/views/layout.ecr"
   }
 end
 
-# 2. Add the middleware
 add_handler Kemal::Inertia::Middleware.new
 
-# 3. Render your pages
 get "/" do |env|
-  # Render 'Home' component with props
-  Kemal::Inertia.render(env, "Home", 
-    name: "Kemal",
-    version: "1.0"
-  )
+  Kemal::Inertia.render(env, "home", name: "Kemal", version: "1.0")
 end
 
 Kemal.run
@@ -54,35 +44,25 @@ Kemal.run
 
 ### Simple Render
 
-Pass props as named arguments:
-
 ```crystal
 get "/users" do |env|
   users = [
     {"id" => 1, "name" => "Alice"},
-    {"id" => 2, "name" => "Bob"}
+    {"id" => 2, "name" => "Bob"},
   ]
-  
-  Kemal::Inertia.render(env, "Users/Index", 
-    users: users,
-    count: users.size
-  )
+
+  Kemal::Inertia.render(env, "users/index", users: users, count: users.size)
 end
 ```
 
 ### Using a Block
 
-Useful for complex data structures:
-
 ```crystal
 get "/dashboard" do |env|
-  Kemal::Inertia.render(env, "Dashboard") do
+  Kemal::Inertia.render(env, "dashboard") do
     {
-      "stats" => {
-        "users" => 120,
-        "sales" => 42
-      },
-      "last_updated" => Time.local.to_s
+      "stats"        => {"users" => 120, "sales" => 42},
+      "last_updated" => Time.local.to_s,
     }
   end
 end
@@ -90,44 +70,84 @@ end
 
 ## Shared Data
 
-Shared props are automatically included in every response. Great for user sessions, flash messages, etc.
+Shared props are automatically included in every response.
 
 ```crystal
 Kemal::Inertia.share("auth") do |env|
   if id = env.session.int?("user_id")
-    { "user" => { "id" => id, "name" => "Current User" } }
+    {"user" => {"id" => id, "name" => "Current User"}}
   else
     nil
   end
 end
 ```
 
-## Partial Reloads
+## Deferred Props
 
-This adapter supports Inertia's Partial Reloads feature. If a request includes `X-Inertia-Partial-Data` headers, only the requested keys will be returned.
+Deferred props are excluded from the initial page load and fetched in a separate request afterwards. You can group them to control parallel fetching.
 
 ```crystal
-# Frontend request: 
-# get(url, { only: ['users'], preserveState: true })
-
 get "/users" do |env|
-  # If 'users' is not requested during a partial reload, 
-  # this expensive calculation might be skipped (depending on implementation optimization)
-  
-  Kemal::Inertia.render(env, "Users/Index",
-    users: User.all, # Heavy query
-    filters: params  # Light data
+  Kemal::Inertia.render(env, "users/index",
+    users: User.all,
+    permissions: Kemal::Inertia.defer { Permission.all },
+    teams: Kemal::Inertia.defer("sidebar") { Team.all },
+    projects: Kemal::Inertia.defer("sidebar") { Project.all },
   )
+end
+```
+
+## Partial Reloads
+
+If a request includes `X-Inertia-Partial-Data` or `X-Inertia-Partial-Except` headers, only the requested (or non-excluded) props will be returned.
+
+```crystal
+get "/users" do |env|
+  Kemal::Inertia.render(env, "users/index",
+    users: User.all,
+    filters: params,
+  )
+end
+```
+
+## Validation Errors
+
+```crystal
+post "/users" do |env|
+  errors = {} of String => Array(String)
+  errors["email"] = ["is required"] if email.empty?
+
+  unless errors.empty?
+    Kemal::Inertia.validation_error(env, errors)
+    next
+  end
+
+  Kemal::Inertia.redirect(env, "/users")
+end
+```
+
+## Redirects
+
+```crystal
+Kemal::Inertia.redirect(env, "/dashboard")
+```
+
+## SSR
+
+```crystal
+Kemal::Inertia.configure do |config|
+  config.ssr_enabled = true
+  config.ssr_url = "http://localhost:13714"
 end
 ```
 
 ## Examples
 
-Check the `examples/` folder for full working examples with different frontend frameworks:
+Check the `examples/` folder for full working examples:
 
-- **[React](examples/react-app)** (Vite + React)
+- **[React](examples/react-app)** (Vite + React 19)
 - **[Vue](examples/vue-app)** (Vite + Vue 3)
-- **[Svelte](examples/svelte-app)** (Vite + Svelte)
+- **[Svelte](examples/svelte-app)** (Vite + Svelte 5)
 
 ## Contributing
 
