@@ -1,6 +1,6 @@
 # <a href="https://kemalcr.com" target="_blank">Kemal</a> + <a href="https://inertiajs.com" target="_blank">Inertia</a>
 
-Inertia.js v2 adapter for Kemal written in Crystal.
+Inertia.js v3 adapter for Kemal written in Crystal.
 
 This shard allows you to use Inertia.js with Kemal, enabling modern SPA-like applications using Vue, React, or Svelte without building a separate API.
 
@@ -34,10 +34,27 @@ end
 add_handler Kemal::Inertia::Middleware.new
 
 get "/" do |env|
-  Kemal::Inertia.render(env, "home", name: "Kemal", version: "1.0")
+  Kemal::Inertia.render(env, "home", name: "Kemal")
 end
 
 Kemal.run
+```
+
+Your `layout.ecr` should use the v3 script tag format:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>My App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script id="app" type="application/json"><%= page %></script>
+  </body>
+</html>
 ```
 
 ## Rendering
@@ -70,7 +87,7 @@ end
 
 ## Shared Data
 
-Shared props are automatically included in every response.
+Shared props are automatically included in every response. Their keys are also listed in the `sharedProps` field of the page object (v3).
 
 ```crystal
 Kemal::Inertia.share("auth") do |env|
@@ -86,13 +103,15 @@ end
 
 Deferred props are excluded from the initial page load and fetched in a separate request afterwards. You can group them to control parallel fetching.
 
+Use `Kemal::Inertia.optional` (v3) or `Kemal::Inertia.defer`:
+
 ```crystal
 get "/users" do |env|
   Kemal::Inertia.render(env, "users/index",
     users: User.all,
-    permissions: Kemal::Inertia.defer { Permission.all },
-    teams: Kemal::Inertia.defer("sidebar") { Team.all },
-    projects: Kemal::Inertia.defer("sidebar") { Project.all },
+    permissions: Kemal::Inertia.optional { Permission.all },
+    teams: Kemal::Inertia.optional("sidebar") { Team.all },
+    projects: Kemal::Inertia.optional("sidebar") { Project.all },
   )
 end
 ```
@@ -145,9 +164,9 @@ end
 
 Check the `examples/` folder for full working examples:
 
-- **[React](examples/react-app)** (Vite + React 19)
-- **[Vue](examples/vue-app)** (Vite + Vue 3)
-- **[Svelte](examples/svelte-app)** (Vite + Svelte 5)
+- **[React](examples/react-app)** (Vite + React 19 + @inertiajs/react v3)
+- **[Vue](examples/vue-app)** (Vite + Vue 3 + @inertiajs/vue3 v3)
+- **[Svelte](examples/svelte-app)** (Vite + Svelte 5 + @inertiajs/svelte v3)
 
 ## Contributing
 
