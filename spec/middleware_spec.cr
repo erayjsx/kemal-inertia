@@ -88,4 +88,27 @@ describe Kemal::Inertia::Middleware do
     middleware.call(context)
     next_handler.called.should be_true
   end
+
+  it "sets X-Inertia-Redirect instead of X-Inertia-Location for fragment redirects on 409" do
+    middleware = Kemal::Inertia::Middleware.new
+    next_handler = HTTP::Handler::HandlerProc.new do |ctx|
+      ctx.response.status_code = 409
+      ctx.response.headers["X-Inertia-Location"] = "/dashboard#section"
+    end
+    middleware.next = next_handler
+
+    io = IO::Memory.new
+    headers = HTTP::Headers{
+      "X-Inertia"         => "true",
+      "X-Inertia-Version" => "1.0",
+    }
+    request = HTTP::Request.new("GET", "/dashboard#section", headers: headers)
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+
+    middleware.call(context)
+
+    context.response.headers["X-Inertia-Redirect"].should eq("/dashboard#section")
+    context.response.headers["X-Inertia-Location"]?.should be_nil
+  end
 end

@@ -21,6 +21,15 @@ module Kemal::Inertia
       end
 
       call_next(context)
+
+      # After response: if it's a 409 with a fragment redirect, set X-Inertia-Redirect
+      if is_inertia && context.response.status_code == 409
+        location = context.response.headers[Headers::LOCATION]?
+        if location && location.includes?("#")
+          context.response.headers[Headers::REDIRECT] = location
+          context.response.headers.delete(Headers::LOCATION)
+        end
+      end
     end
   end
 end

@@ -40,4 +40,16 @@ describe Kemal::Inertia::Headers do
   it "defines VARY constant" do
     Kemal::Inertia::Headers::VARY.should eq("Vary")
   end
+
+  it "defines REDIRECT constant" do
+    Kemal::Inertia::Headers::REDIRECT.should eq("X-Inertia-Redirect")
+  end
+
+  it "defines INFINITE_SCROLL_MERGE_INTENT constant" do
+    Kemal::Inertia::Headers::INFINITE_SCROLL_MERGE_INTENT.should eq("X-Inertia-Infinite-Scroll-Merge-Intent")
+  end
+
+  it "defines PURPOSE constant" do
+    Kemal::Inertia::Headers::PURPOSE.should eq("Purpose")
+  end
 end

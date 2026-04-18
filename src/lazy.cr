@@ -18,6 +18,11 @@ module Kemal::Inertia
     DeferredProp.new(group) { block.call }
   end
 
+  # v3 alias for defer
+  def self.optional(group : String = "default", &block : -> _) : DeferredProp
+    DeferredProp.new(group) { block.call }
+  end
+
   # Backward compatibility alias
   def self.lazy(&block : -> _) : DeferredProp
     DeferredProp.new("default") { block.call }

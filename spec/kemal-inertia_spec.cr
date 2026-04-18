@@ -47,8 +47,8 @@ describe Kemal::Inertia do
       client_response = HTTP::Client::Response.from_io(io)
 
       client_response.headers["Content-Type"].should eq("text/html")
-      client_response.body.should contain("<div id=\"app\"")
-      client_response.body.should contain("data-page=")
+      client_response.body.should contain("<div id=\"app\">")
+      client_response.body.should contain("<script id=\"app\" type=\"application/json\">")
     end
 
     it "renders multiple prop types" do
@@ -187,6 +187,58 @@ describe Kemal::Inertia do
       json["props"].as_h.has_key?("foo").should be_true
       json["props"].as_h.has_key?("extra").should be_true
       json["props"].as_h.has_key?("baz").should be_false
+    end
+  end
+
+  describe "v3 protocol" do
+    it "includes sharedProps keys in response" do
+      Kemal::Inertia.share("user") { |_env| "alice" }
+
+      io = IO::Memory.new
+      request = HTTP::Request.new("GET", "/", headers: HTTP::Headers{"X-Inertia" => "true"})
+      response = HTTP::Server::Response.new(io)
+      context = HTTP::Server::Context.new(request, response)
+
+      Kemal::Inertia.render(context, "Home", title: "Hello")
+
+      response.close
+      io.rewind
+      client_response = HTTP::Client::Response.from_io(io)
+      json = JSON.parse(client_response.body)
+
+      json["sharedProps"].as_a.map(&.as_s).should contain("user")
+    end
+
+    it "omits sharedProps when no shared props are set" do
+      io = IO::Memory.new
+      request = HTTP::Request.new("GET", "/", headers: HTTP::Headers{"X-Inertia" => "true"})
+      response = HTTP::Server::Response.new(io)
+      context = HTTP::Server::Context.new(request, response)
+
+      Kemal::Inertia.render(context, "Home")
+
+      response.close
+      io.rewind
+      client_response = HTTP::Client::Response.from_io(io)
+      json = JSON.parse(client_response.body)
+
+      json.as_h.has_key?("sharedProps").should be_false
+    end
+
+    it "renders initial page as script type application/json" do
+      io = IO::Memory.new
+      request = HTTP::Request.new("GET", "/")
+      response = HTTP::Server::Response.new(io)
+      context = HTTP::Server::Context.new(request, response)
+
+      Kemal::Inertia.render(context, "Home")
+
+      response.close
+      io.rewind
+      client_response = HTTP::Client::Response.from_io(io)
+
+      client_response.body.should contain("<script id=\"app\" type=\"application/json\">")
+      client_response.body.should_not contain("data-page=")
     end
   end
 

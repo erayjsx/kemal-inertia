@@ -8,6 +8,7 @@
     <%= vite_tags("src/js/app.jsx") %>
   </head>
   <body>
-    <div id="app" data-page="<%= HTML.escape(page) %>"></div>
+    <div id="app"></div>
+    <script id="app" type="application/json"><%= page %></script>
   </body>
 </html>

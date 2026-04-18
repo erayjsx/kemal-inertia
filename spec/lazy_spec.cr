@@ -75,6 +75,24 @@ describe "Kemal::Inertia deferred props" do
     json["props"].as_h.has_key?("eager").should be_false
   end
 
+  it "optional alias works (v3)" do
+    io = IO::Memory.new
+    request = HTTP::Request.new("GET", "/", headers: HTTP::Headers{"X-Inertia" => "true"})
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+
+    optional_prop = Kemal::Inertia.optional { "optional_data" }
+    Kemal::Inertia.render(context, "page", data: optional_prop)
+
+    response.close
+    io.rewind
+    client_response = HTTP::Client::Response.from_io(io)
+    json = JSON.parse(client_response.body)
+
+    json["props"].as_h.has_key?("data").should be_false
+    json["deferredProps"]["default"].as_a.map(&.as_s).should contain("data")
+  end
+
   it "backward compatible lazy alias works" do
     io = IO::Memory.new
     request = HTTP::Request.new("GET", "/", headers: HTTP::Headers{"X-Inertia" => "true"})

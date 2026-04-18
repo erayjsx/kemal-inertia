@@ -87,12 +87,18 @@ module Kemal::Inertia
       end
     end
 
+    deferred = deferred_groups.empty? ? nil : deferred_groups
+    shared_keys = shared_props(env).keys
+    shared_keys_list = shared_keys.empty? ? nil : shared_keys
+
     inertia_response = Response.new(
       component: component,
       props: resolved_props,
       url: env.request.path,
       version: Kemal::Inertia.version,
-      deferred_props: deferred_groups.empty? ? nil : deferred_groups,
+      deferred_props: deferred,
+      initial_deferred_props: deferred,
+      shared_props: shared_keys_list,
     )
 
     page_json = inertia_response.to_json
@@ -137,7 +143,8 @@ module Kemal::Inertia
       <title>Inertia App</title>
     </head>
     <body>
-      <div id="app" data-page='#{HTML.escape(page_json)}'></div>
+      <div id="app"></div>
+      <script id="app" type="application/json">#{page_json}</script>
     </body>
     </html>
     HTML
